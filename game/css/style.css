@@ -1,0 +1,249 @@
+/* ============================================================
+   游戏引擎样式
+   ============================================================ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+    font-family: -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    user-select: none
+}
+
+#game-root {
+    position: fixed;
+    inset: 0;
+    background: #000
+}
+
+#game-canvas {
+    display: block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges
+}
+
+/* ============================================================
+   对话框（canvas 绘制）
+   ============================================================ */
+#dialogue-canvas {
+    position: absolute;
+    pointer-events: auto;
+    z-index: 50;
+    display: none;
+    cursor: pointer;
+}
+
+    #dialogue-canvas.show {
+        display: block;
+    }
+
+/* ============================================================
+   选项
+   ============================================================ */
+#choice-layer {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.55);
+    z-index: 50;
+}
+
+    #choice-layer.show {
+        display: flex
+    }
+
+    #choice-layer .choice-box {
+        background: rgba(8,12,18,0.96);
+        border: 2px solid #6ec8e0;
+        border-radius: 12px;
+        padding: 14px;
+        min-width: 360px;
+        max-width: 80vw;
+    }
+
+    #choice-layer .choice-btn {
+        display: block;
+        width: 100%;
+        padding: 14px 22px;
+        margin: 6px 0;
+        background: #161a22;
+        color: #e8e8ea;
+        border: 1px solid #2e3e4e;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 16px;
+        cursor: pointer;
+        text-align: left;
+        transition: all 0.15s;
+    }
+
+        #choice-layer .choice-btn:hover {
+            background: #2a4d7a;
+            border-color: #6ec8e0
+        }
+
+/* ============================================================
+   调试 HUD
+   ============================================================ */
+#debug-hud {
+    position: absolute;
+    top: 8px;
+    left: 10px;
+    font-family: ui-monospace,monospace;
+    font-size: 11px;
+    color: #6ec8e0;
+    text-shadow: 1px 1px 0 #000;
+    pointer-events: none;
+    line-height: 1.6;
+    opacity: 0.85;
+}
+
+/* ============================================================
+   Loader
+   ============================================================ */
+#loader {
+    position: fixed;
+    inset: 0;
+    background: #0a0d12;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    transition: opacity 0.5s;
+}
+
+    #loader.hide {
+        opacity: 0;
+        pointer-events: none
+    }
+
+.loader-box {
+    background: #12161c;
+    border: 1px solid #2e3e4e;
+    border-radius: 14px;
+    padding: 40px 50px;
+    text-align: center;
+    min-width: 400px;
+}
+
+.loader-title {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: 4px;
+    background: linear-gradient(180deg,#a8d8f0,#4a7ca8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+}
+
+.loader-sub {
+    font-size: 12px;
+    color: #6a7a86;
+    letter-spacing: 2px;
+    margin-bottom: 28px
+}
+
+#btn-load-default, .loader-file-btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    background: #1a2735;
+    color: #d8e8ff;
+    border: 1px solid #3a6d9a;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+}
+
+    #btn-load-default:hover, .loader-file-btn:hover {
+        background: #2a4d7a
+    }
+
+.loader-status {
+    margin-top: 16px;
+    font-size: 12px;
+    color: #6a7a86;
+    font-family: ui-monospace,monospace;
+    min-height: 20px
+}
+
+/* ============================================================
+   ★ 房间 UI 层
+   ============================================================ */
+#room-ui-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 5;
+    overflow: hidden;
+}
+
+    #room-ui-layer .ui-el {
+        position: absolute;
+        pointer-events: auto;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    #room-ui-layer .ui-joystick {
+        border-radius: 50%;
+        touch-action: none;
+        cursor: grab;
+        box-sizing: border-box;
+    }
+
+        #room-ui-layer .ui-joystick:active {
+            cursor: grabbing;
+        }
+
+    #room-ui-layer .ui-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-sizing: border-box;
+        touch-action: manipulation;
+        transition: transform 0.08s ease, filter 0.1s ease;
+        font-family: monospace;
+        font-weight: bold;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+        #room-ui-layer .ui-btn:active {
+            transform: scale(0.9);
+            filter: brightness(1.3);
+        }
+
+    #room-ui-layer .ui-img {
+        object-fit: contain;
+        pointer-events: none;
+        width: 100%;
+        height: 100%;
+    }
+
+    #room-ui-layer .ui-text {
+        pointer-events: none;
+        color: #ffffff;
+        white-space: pre;
+        font-family: sans-serif;
+        line-height: 1.3;
+    }
+
+    #room-ui-layer .ui-panel {
+        box-sizing: border-box;
+        pointer-events: none;
+    }

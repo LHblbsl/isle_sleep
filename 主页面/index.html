@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="icon" href="data:,">
+    <title>Isle Sleep</title>
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #f7e9c8;
+            font-family: -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+            color: #e8e8ea;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        /* ============================================================
+        背景层
+        ============================================================ */
+        #bg-stage {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+            background: linear-gradient(180deg, #b8d8f0 0%, #f7e9c8 55%, #e8c890 100%);
+        }
+
+        .bg-layer {
+            position: absolute;
+            top: -40px;
+            left: -40px;
+            right: -40px;
+            bottom: -40px;
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover;
+            will-change: transform;
+            backface-visibility: hidden;
+            transform: translateZ(0);
+        }
+
+        .bg-0 {
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('背景0.png');
+            z-index: 0;
+        }
+
+        .bg-1 {
+            background-image: url('背景1.png');
+            z-index: 2;
+            animation: float-1 14s ease-in-out infinite;
+        }
+
+        .bg-2 {
+            background-image: url('背景2.png');
+            z-index: 3;
+            animation: float-2 13s ease-in-out infinite;
+            animation-delay: -1.5s;
+        }
+
+        .bg-3 {
+            background-image: url('背景3.png');
+            z-index: 5;
+            animation: float-3 12s ease-in-out infinite;
+            animation-delay: -3s;
+        }
+
+        .bg-4 {
+            background-image: url('背景4.png');
+            z-index: 6;
+            animation: float-4 11s ease-in-out infinite;
+            animation-delay: -4.5s;
+        }
+
+        .bg-5 {
+            background-image: url('背景5.png');
+            z-index: 8;
+            animation: float-5 10s ease-in-out infinite;
+            animation-delay: -6s;
+        }
+
+        .cloud-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            will-change: transform;
+        }
+
+        #cloud-far {
+            z-index: 1;
+        }
+
+        #cloud-mid {
+            z-index: 4;
+        }
+
+        #cloud-near {
+            z-index: 7;
+        }
+
+        @keyframes float-1 {
+            0%,100% {
+                transform: translate3d(0,-22px,0);
+            }
+
+            50% {
+                transform: translate3d(0, 22px,0);
+            }
+        }
+
+        @keyframes float-2 {
+            0%,100% {
+                transform: translate3d(0,-23px,0);
+            }
+
+            50% {
+                transform: translate3d(0, 23px,0);
+            }
+        }
+
+        @keyframes float-3 {
+            0%,100% {
+                transform: translate3d(0,-24px,0);
+            }
+
+            50% {
+                transform: translate3d(0, 24px,0);
+            }
+        }
+
+        @keyframes float-4 {
+            0%,100% {
+                transform: translate3d(0,-26px,0);
+            }
+
+            50% {
+                transform: translate3d(0, 26px,0);
+            }
+        }
+
+        @keyframes float-5 {
+            0%,100% {
+                transform: translate3d(0,-28px,0);
+            }
+
+            50% {
+                transform: translate3d(0, 28px,0);
+            }
+        }
+        /* ============================================================
+        顶层特效（光束 / 尘埃 / 日晕）
+        ============================================================ */
+        #fx-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 20;
+            pointer-events: none;
+            mix-blend-mode: screen;
+        }
+        /* ============================================================
+        内容层
+        ============================================================ */
+        #content {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 30;
+            pointer-events: none;
+        }
+
+        #title-group {
+            position: absolute;
+            left: 76%;
+            top: 22%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        #title-cn {
+            display: block;
+            max-width: 26vw;
+            max-height: 18vh;
+            width: auto;
+            height: auto;
+            filter: drop-shadow(0 6px 14px rgba(0,0,0,0.5));
+            animation: title-in 1s cubic-bezier(0.34,1.56,0.64,1) 0.15s both;
+        }
+
+        #title-en {
+            display: block;
+            max-width: 18vw;
+            max-height: 6vh;
+            width: auto;
+            height: auto;
+            opacity: 0.95;
+            filter: drop-shadow(0 3px 8px rgba(0,0,0,0.5));
+            animation: title-in 1s cubic-bezier(0.34,1.56,0.64,1) 0.55s both;
+        }
+
+        @keyframes title-in {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.94);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        #menu {
+            position: absolute;
+            left: 76%;
+            top: 54%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            align-items: center;
+            pointer-events: auto;
+        }
+
+        .menu-item {
+            animation: menu-in 0.55s cubic-bezier(0.25,1.3,0.5,1) both;
+        }
+
+            .menu-item:nth-child(1) {
+                animation-delay: 0.95s;
+            }
+
+            .menu-item:nth-child(2) {
+                animation-delay: 1.10s;
+            }
+
+            .menu-item:nth-child(3) {
+                animation-delay: 1.25s;
+            }
+
+            .menu-item:nth-child(4) {
+                animation-delay: 1.40s;
+            }
+
+        @keyframes menu-in {
+            from {
+                opacity: 0;
+                transform: translateX(-36px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        /* 像素风按钮 —— 半透明 + 阶梯圆角 */
+        .pixel-btn {
+            display: inline-block;
+            padding: 3px;
+            background: rgba(150,210,235,0.50);
+            border: 0;
+            cursor: pointer;
+            font-family: inherit;
+            -webkit-clip-path: polygon( 8px 0, calc(100% - 8px) 0, calc(100% - 8px) 3px, calc(100% - 3px) 3px, calc(100% - 3px) 6px, 100% 6px, 100% calc(100% - 6px), calc(100% - 3px) calc(100% - 6px), calc(100% - 3px) calc(100% - 3px), calc(100% - 8px) calc(100% - 3px), calc(100% - 8px) 100%, 8px 100%, 8px calc(100% - 3px), 3px calc(100% - 3px), 3px calc(100% - 6px), 0 calc(100% - 6px), 0 6px, 3px 6px, 3px 3px, 8px 3px );
+            clip-path: polygon( 8px 0, calc(100% - 8px) 0, calc(100% - 8px) 3px, calc(100% - 3px) 3px, calc(100% - 3px) 6px, 100% 6px, 100% calc(100% - 6px), calc(100% - 3px) calc(100% - 6px), calc(100% - 3px) calc(100% - 3px), calc(100% - 8px) calc(100% - 3px), calc(100% - 8px) 100%, 8px 100%, 8px calc(100% - 3px), 3px calc(100% - 3px), 3px calc(100% - 6px), 0 calc(100% - 6px), 0 6px, 3px 6px, 3px 3px, 8px 3px );
+            transition: filter 0.15s, background 0.15s;
+        }
+
+        .pixel-btn-fill {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 52px;
+            min-width: 220px;
+            padding: 0 32px;
+            background: rgba(18,32,55,0.58);
+            color: #f0ead8;
+            font-family: "Courier New",Consolas,monospace;
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: 6px;
+            text-indent: 6px;
+            text-shadow: 2px 2px 0 #000;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .pixel-btn:hover {
+            background: rgba(170,230,245,0.75);
+        }
+
+            .pixel-btn:hover .pixel-btn-fill {
+                background: rgba(35,55,90,0.75);
+                color: #ffffff;
+            }
+
+        .pixel-btn:active {
+            filter: brightness(0.85);
+        }
+
+        #exit-wrap {
+            will-change: transform;
+        }
+        /* logo —— 尽量小 */
+        #logo {
+            position: absolute;
+            left: 24px;
+            bottom: 24px;
+            width: 40px;
+            max-width: 10vw;
+            height: auto;
+            opacity: 0;
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+            animation: logo-in 1.2s ease-out 1.65s both;
+        }
+
+        @keyframes logo-in {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 0.85;
+                transform: translateY(0);
+            }
+        }
+        /* ============================================================
+        弹窗
+        ============================================================ */
+        .modal-mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 24px;
+            pointer-events: auto;
+        }
+
+            .modal-mask.show {
+                display: flex;
+                animation: mask-in 0.22s ease-out;
+            }
+
+        @keyframes mask-in {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal {
+            background: rgba(24,30,46,0.96);
+            border: 3px solid rgba(110,200,224,0.7);
+            padding: 26px 34px;
+            min-width: 340px;
+            max-width: 90vw;
+            max-height: 86vh;
+            overflow-y: auto;
+            color: #e8e8ea;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+            animation: modal-in 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        }
+
+        @keyframes modal-in {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .modal h2 {
+            font-size: 20px;
+            letter-spacing: 8px;
+            text-indent: 8px;
+            text-align: center;
+            color: #ffcc66;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 0 #000;
+        }
+
+        .modal p {
+            display: flex;
+            gap: 14px;
+            align-items: baseline;
+            font-size: 14px;
+            line-height: 2;
+            color: #c8c8d0;
+        }
+
+            .modal p .label {
+                flex: 0 0 5.5em;
+                color: #6ec8e0;
+                font-size: 13px;
+            }
+
+        .modal .btn-row {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 22px;
+        }
+
+        .modal button {
+            padding: 10px 26px;
+            min-width: 100px;
+            font-family: inherit;
+            font-size: 14px;
+            letter-spacing: 3px;
+            text-indent: 3px;
+            color: #f0ead8;
+            background: rgba(42,58,90,0.9);
+            border: 2px solid rgba(110,200,224,0.5);
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+        }
+
+            .modal button:hover {
+                background: rgba(60,85,130,0.95);
+            }
+
+            .modal button:active {
+                transform: translateY(1px);
+            }
+
+            .modal button.danger {
+                background: rgba(90,42,42,0.9);
+                border-color: rgba(220,120,120,0.6);
+            }
+
+                .modal button.danger:hover {
+                    background: rgba(130,60,60,0.95);
+                }
+
+        #toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            padding: 12px 26px;
+            background: rgba(20,25,40,0.95);
+            border: 2px solid rgba(110,200,224,0.7);
+            color: #e8e8ea;
+            font-size: 14px;
+            letter-spacing: 2px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s, transform 0.3s;
+            z-index: 200;
+        }
+
+            #toast.show {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+
+        @media (max-width:760px) {
+            #title-group {
+                left: 70%;
+                top: 20%;
+                gap: 6px;
+            }
+
+            #menu {
+                left: 70%;
+                top: 52%;
+                gap: 12px;
+            }
+
+            .pixel-btn-fill {
+                min-width: 180px;
+                height: 44px;
+                padding: 0 22px;
+                font-size: 16px;
+                letter-spacing: 4px;
+                text-indent: 4px;
+            }
+
+            #logo {
+                width: 32px;
+                left: 14px;
+                bottom: 14px;
+            }
+        }
+
+        /* ============================================================
+                新增：开场动画层（原有代码未做任何修改）
+                ============================================================ */
+        #splash-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 999;
+            transition: all 1.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        #splash-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        /* 动画结束后丝滑移动到左下角logo位置 */
+        #splash-container.move-to-logo {
+            top: auto;
+            left: 24px;
+            bottom: 24px;
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            opacity: 0.85;
+        }
+        /* 初始暂停主内容动画，等开场结束再播放 */
+        #content.init-hide {
+            opacity: 0;
+        }
+
+            #content.init-hide * {
+                animation-play-state: paused !important;
+            }
+    </style>
+</head>
+<body>
+    <!-- 新增：开场动画层（原有代码未做任何修改） -->
+    <div id="splash-container">
+        <canvas id="splash-canvas"></canvas>
+    </div>
+
+    <div id="bg-stage">
+        <div class="bg-layer bg-0"></div>
+        <canvas class="cloud-layer" id="cloud-far"></canvas>
+        <div class="bg-layer bg-1"></div>
+        <div class="bg-layer bg-2"></div>
+        <canvas class="cloud-layer" id="cloud-mid"></canvas>
+        <div class="bg-layer bg-3"></div>
+        <div class="bg-layer bg-4"></div>
+        <canvas class="cloud-layer" id="cloud-near"></canvas>
+        <div class="bg-layer bg-5"></div>
+    </div>
+    <canvas id="fx-canvas"></canvas>
+    <div id="content">
+        <div id="title-group">
+            <img id="title-cn" src="文字标题.png" alt="title" draggable="false">
+            <img id="title-en" src="英文标题.png" alt="english" draggable="false">
+        </div>
+        <div id="menu">
+            <button class="pixel-btn menu-item" data-action="start">
+                <span class="pixel-btn-fill">开始游戏</span>
+            </button>
+            <button class="pixel-btn menu-item" data-action="load">
+                <span class="pixel-btn-fill">读　档</span>
+            </button>
+            <button class="pixel-btn menu-item" data-action="about">
+                <span class="pixel-btn-fill">关　于</span>
+            </button>
+            <div class="menu-item">
+                <div id="exit-wrap">
+                    <button class="pixel-btn" id="exit-btn" data-action="exit">
+                        <span class="pixel-btn-fill">退出游戏</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <img id="logo" src="logo.png" alt="logo" draggable="false">
+    </div>
+    <div class="modal-mask" id="about-modal">
+        <div class="modal">
+            <h2>关　于</h2>
+            <p><span class="label">开发人员</span><span>Lanblbsl</span></p>
+            <p><span class="label">　　''　</span><span>出击~</span></p>
+            <p><span class="label">　　''　</span><span>Seedance [AI]</span></p>
+            <p><span class="label">　　''　</span><span>DeepSeek [AI]</span></p>
+            <p><span class="label">美　　术</span><span>Lanblbsl</span></p>
+            <p><span class="label">游戏引擎</span><span>超级引擎 (Suprion)</span></p>
+            <div class="btn-row">
+                <button data-modal-close="about-modal">关　闭</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-mask" id="exit-modal">
+        <div class="modal">
+            <h2>退出游戏</h2>
+            <p style="display:block;text-align:center;font-size:15px;color:#e8e8ea;margin-top:6px;">
+                确定要退出游戏吗？
+            </p>
+            <div class="btn-row">
+                <button data-modal-close="exit-modal">取　消</button>
+                <button class="danger" id="exit-confirm">确　定</button>
+            </div>
+        </div>
+    </div>
+    <div id="toast"></div>
+    <!-- ============================================================
+         S1：错误兜底
+         ============================================================ -->
+    <script>
+        window.onerror = function (msg, url, line, col) {
+            console.error('[PAGE ERROR]', msg, '@ line ' + line + ':' + col);
+            return false;
+        };
+    </script>
+    <!-- ============================================================
+         S2：GameEntry 接口
+         ============================================================ -->
+    <script>
+        if (!window.GameEntry) {
+            window.GameEntry = {
+                startGame: function () {
+                    console.log('[GameEntry] startGame');
+                    window.GameEntry.toast('游戏即将启动... 等待打包注入');
+                },
+                loadGame: function () {
+                    console.log('[GameEntry] loadGame');
+                    window.GameEntry.toast('存档功能开发中');
+                },
+                exitGame: function () {
+                    console.log('[GameEntry] exitGame');
+                    try {
+                        if (window.Android && typeof window.Android.exitApp === 'function') {
+                            window.Android.exitApp(); return;
+                        }
+                        if (window.AndroidBridge && typeof window.AndroidBridge.exitApp === 'function') {
+                            window.AndroidBridge.exitApp(); return;
+                        }
+                    } catch (e) { console.warn('[GameEntry] android bridge error', e); }
+                    try { window.close(); } catch (e) { }
+                    setTimeout(function () {
+                        document.documentElement.innerHTML =
+                            '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:#000;color:#666;' +
+                            'display:flex;align-items:center;justify-content:center;' +
+                            'font-family:-apple-system,sans-serif;font-size:16px;letter-spacing:6px;">' +
+                            '已退出，请手动关闭标签页</div>';
+                    }, 120);
+                },
+                toast: function (msg) {
+                    var t = document.getElementById('toast');
+                    if (!t) return;
+                    t.textContent = msg;
+                    t.classList.add('show');
+                    clearTimeout(t._timer);
+                    t._timer = setTimeout(function () { t.classList.remove('show'); }, 2400);
+                }
+            };
+        }
+    </script>
+    <!-- ============================================================
+         S3：三层云 + 顶层特效（统一 rAF 驱动）
+         ============================================================ -->
+    <script>
+        (function () {
+            /* ---------- 确定性随机 ---------- */
+            function mulberry32(a) {
+                return function () {
+                    a |= 0; a = a + 0x6D2B79F5 | 0;
+                    var t = a;
+                    t = Math.imul(t ^ t >>> 15, t | 1);
+                    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+                    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+                };
+            }
+            /* ---------- 预渲染云朵精灵 ---------- */
+            function makeCloudSprite(seed) {
+                var size = 256;
+                var c = document.createElement('canvas');
+                c.width = c.height = size;
+                var g = c.getContext('2d');
+                var rng = mulberry32(seed);
+                var n = 12 + Math.floor(rng() * 8);
+                for (var i = 0; i < n; i++) {
+                    var t = i / Math.max(1, n - 1);
+                    var x = size * (0.22 + 0.56 * t + (rng() - 0.5) * 0.10);
+                    var y = size * (0.50 + (rng() - 0.5) * 0.28);
+                    var bump = 0.65 + 0.55 * Math.sin(t * Math.PI);
+                    var r = size * (0.14 + rng() * 0.13) * bump;
+                    var grd = g.createRadialGradient(x, y, 0, x, y, r);
+                    grd.addColorStop(0.00, 'rgba(255,253,248,0.92)');
+                    grd.addColorStop(0.35, 'rgba(255,250,235,0.60)');
+                    grd.addColorStop(0.70, 'rgba(255,244,220,0.22)');
+                    grd.addColorStop(1.00, 'rgba(255,240,200,0.00)');
+                    g.fillStyle = grd;
+                    g.fillRect(0, 0, size, size);
+                }
+                return c;
+            }
+            var SPRITES = [makeCloudSprite(101), makeCloudSprite(202), makeCloudSprite(303), makeCloudSprite(404)];
+            /* ---------- 云层配置 ---------- */
+            var CLOUD_CFG = [
+                { id: 'cloud-far', count: 6, minScale: 0.55, maxScale: 1.10, speed: 8, baseAlpha: 0.55, dprCap: 0.75 },
+                { id: 'cloud-mid', count: 7, minScale: 0.85, maxScale: 1.55, speed: 16, baseAlpha: 0.50, dprCap: 0.75 },
+                { id: 'cloud-near', count: 5, minScale: 1.20, maxScale: 2.10, speed: 28, baseAlpha: 0.38, dprCap: 0.75 }
+            ];
+            var cloudLayers = [];
+            function buildCloudLayer(cfg) {
+                var el = document.getElementById(cfg.id);
+                if (!el) return null;
+                var ctx = el.getContext('2d');
+                var layer = {
+                    el: el, ctx: ctx, cfg: cfg,
+                    W: 0, H: 0,
+                    puffs: []
+                };
+                function spawnPuff() {
+                    return {
+                        sprite: SPRITES[Math.floor(Math.random() * SPRITES.length)],
+                        x: Math.random() * (layer.W + 400) - 200,
+                        y: Math.random() * (layer.H * 0.95),
+                        scale: cfg.minScale + Math.random() * (cfg.maxScale - cfg.minScale),
+                        speedMul: 0.7 + Math.random() * 0.6,
+                        alphaMul: 0.6 + Math.random() * 0.8,
+                        phase: Math.random() * Math.PI * 2,
+                        bobAmp: 6 + Math.random() * 12
+                    };
+                }
+                layer.resize = function () {
+                    var dpr = Math.min(window.devicePixelRatio || 1, 2) * cfg.dprCap;
+                    layer.W = window.innerWidth;
+                    layer.H = window.innerHeight;
+                    el.width = Math.floor(layer.W * dpr);
+                    el.height = Math.floor(layer.H * dpr);
+                    el.style.width = layer.W + 'px';
+                    el.style.height = layer.H + 'px';
+                    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                    layer.puffs = [];
+                    for (var i = 0; i < cfg.count; i++) layer.puffs.push(spawnPuff());
+                };
+                return layer;
+            }
+            for (var i = 0; i < CLOUD_CFG.length; i++) {
+                var lyr = buildCloudLayer(CLOUD_CFG[i]);
+                if (lyr) cloudLayers.push(lyr);
+            }
+            /* ---------- 顶层特效（光束 + 尘埃 + 日晕） ---------- */
+            var fxCanvas = document.getElementById('fx-canvas');
+            var fx = {
+                el: fxCanvas, ctx: fxCanvas.getContext('2d'),
+                W: 0, H: 0,
+                lightX: 0, lightY: 0,
+                glowGradient: null,
+                beams: [], dust: []
+            };
+            var softCircle = (function () {
+                var c = document.createElement('canvas');
+                c.width = c.height = 128;
+                var g = c.getContext('2d');
+                var grd = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+                grd.addColorStop(0.00, 'rgba(255,250,235,1)');
+                grd.addColorStop(0.30, 'rgba(255,245,220,0.65)');
+                grd.addColorStop(0.65, 'rgba(255,240,200,0.20)');
+                grd.addColorStop(1.00, 'rgba(255,240,200,0)');
+                g.fillStyle = grd;
+                g.fillRect(0, 0, 128, 128);
+                return c;
+            })();
+            function fxInitBeams() {
+                fx.beams = [];
+                var N = 8;
+                for (var i = 0; i < N; i++) {
+                    var t = i / (N - 1);
+                    fx.beams.push({
+                        baseAngle: (116 + t * 52) * Math.PI / 180,
+                        wobble: 0.030 + Math.random() * 0.030,
+                        wobbleSpeed: 0.10 + Math.random() * 0.18,
+                        phase: Math.random() * Math.PI * 2,
+                        halfWidth: 0.020 + Math.random() * 0.028,
+                        length: Math.max(fx.W, fx.H) * (1.0 + Math.random() * 0.4),
+                        alpha: 0.14 + Math.random() * 0.16
+                    });
+                }
+            }
+            function fxInitDust() {
+                fx.dust = [];
+                var N = 90;
+                for (var i = 0; i < N; i++) {
+                    fx.dust.push({
+                        x: Math.random() * fx.W,
+                        y: Math.random() * fx.H,
+                        r: 0.9 + Math.random() * 2.4,
+                        vx: (Math.random() - 0.5) * 8,
+                        vy: -4 - Math.random() * 12,
+                        phase: Math.random() * Math.PI * 2,
+                        alpha: 0.35 + Math.random() * 0.55
+                    });
+                }
+            }
+            function fxResize() {
+                var dpr = Math.min(window.devicePixelRatio || 1, 2);
+                fx.W = window.innerWidth;
+                fx.H = window.innerHeight;
+                fxCanvas.width = Math.floor(fx.W * dpr);
+                fxCanvas.height = Math.floor(fx.H * dpr);
+                fxCanvas.style.width = fx.W + 'px';
+                fxCanvas.style.height = fx.H + 'px';
+                fx.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                fx.lightX = fx.W * 0.72;
+                fx.lightY = fx.H * 0.18;
+                var rad = Math.max(fx.W, fx.H) * 0.80;
+                fx.glowGradient = fx.ctx.createRadialGradient(fx.lightX, fx.lightY, 0, fx.lightX, fx.lightY, rad);
+                fx.glowGradient.addColorStop(0.00, 'rgba(255,248,215,0.60)');
+                fx.glowGradient.addColorStop(0.15, 'rgba(255,238,175,0.35)');
+                fx.glowGradient.addColorStop(0.42, 'rgba(255,222,140,0.12)');
+                fx.glowGradient.addColorStop(1.00, 'rgba(255,220,140,0.00)');
+                if (fx.beams.length === 0) fxInitBeams();
+                if (fx.dust.length === 0) fxInitDust();
+            }
+            /* ---------- 统一 resize ---------- */
+            function resizeAll() {
+                for (var i = 0; i < cloudLayers.length; i++) cloudLayers[i].resize();
+                fxResize();
+            }
+            window.addEventListener('resize', resizeAll);
+            resizeAll();
+            /* ---------- 统一 rAF ---------- */
+            var lastT = performance.now();
+            function renderCloudLayer(L, dt, time) {
+                var ctx = L.ctx;
+                var W = L.W, H = L.H;
+                ctx.clearRect(0, 0, W, H);
+                ctx.globalCompositeOperation = 'source-over';
+                for (var i = 0; i < L.puffs.length; i++) {
+                    var p = L.puffs[i];
+                    p.x += L.cfg.speed * p.speedMul * dt;
+                    var baseSize = 300 * p.scale;
+                    var yOff = Math.sin(time * 0.45 + p.phase) * p.bobAmp;
+                    if (p.x - baseSize > W + 120) {
+                        p.x = -baseSize - 120;
+                        p.y = Math.random() * (H * 0.95);
+                    }
+                    ctx.globalAlpha = L.cfg.baseAlpha * p.alphaMul;
+                    ctx.drawImage(
+                        p.sprite,
+                        p.x - baseSize * 0.5,
+                        p.y + yOff - baseSize * 0.5,
+                        baseSize, baseSize
+                    );
+                }
+                ctx.globalAlpha = 1;
+            }
+            function renderTopFx(dt, time) {
+                var ctx = fx.ctx;
+                var W = fx.W, H = fx.H;
+                ctx.clearRect(0, 0, W, H);
+                /* 1. 日晕（source-over 铺底） */
+                ctx.globalCompositeOperation = 'source-over';
+                if (fx.glowGradient) {
+                    ctx.fillStyle = fx.glowGradient;
+                    ctx.fillRect(0, 0, W, H);
+                }
+                /* 2. 光束（screen） */
+                ctx.globalCompositeOperation = 'screen';
+                for (var bi = 0; bi < fx.beams.length; bi++) {
+                    var b = fx.beams[bi];
+                    var angle = b.baseAngle + Math.sin(time * b.wobbleSpeed + b.phase) * b.wobble;
+                    var hw = b.halfWidth * (1 + Math.sin(time * 0.4 + b.phase) * 0.22);
+                    var a1 = angle - hw;
+                    var a2 = angle + hw;
+                    var x1 = fx.lightX + Math.cos(a1) * b.length;
+                    var y1 = fx.lightY + Math.sin(a1) * b.length;
+                    var x2 = fx.lightX + Math.cos(a2) * b.length;
+                    var y2 = fx.lightY + Math.sin(a2) * b.length;
+                    var grad = ctx.createLinearGradient(fx.lightX, fx.lightY, (x1 + x2) * 0.5, (y1 + y2) * 0.5);
+                    grad.addColorStop(0.00, 'rgba(255,245,215,' + b.alpha + ')');
+                    grad.addColorStop(0.35, 'rgba(255,245,215,' + (b.alpha * 0.5) + ')');
+                    grad.addColorStop(1.00, 'rgba(255,245,215,0)');
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.moveTo(fx.lightX, fx.lightY);
+                    ctx.lineTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+                /* 3. 尘埃 */
+                for (var di = 0; di < fx.dust.length; di++) {
+                    var d = fx.dust[di];
+                    d.x += d.vx * dt;
+                    d.y += d.vy * dt;
+                    d.x += Math.sin(time * 0.6 + d.phase) * 0.2;
+                    if (d.y < -12) { d.y = H + 12; d.x = Math.random() * W; }
+                    if (d.x < -12) d.x = W + 12;
+                    if (d.x > W + 12) d.x = -12;
+                    var twinkle = 0.55 + 0.45 * Math.sin(time * 2.2 + d.phase);
+                    var dlx = d.x - fx.lightX;
+                    var dly = d.y - fx.lightY;
+                    var distL = Math.sqrt(dlx * dlx + dly * dly);
+                    var lightBoost = Math.max(0, 1 - distL / (W * 0.75));
+                    var aFinal = d.alpha * twinkle * (0.40 + 0.60 * lightBoost);
+                    var size = d.r * 3.2;
+                    ctx.globalAlpha = aFinal;
+                    ctx.drawImage(softCircle, d.x - size * 0.5, d.y - size * 0.5, size, size);
+                    ctx.globalAlpha = Math.min(1, aFinal * 1.6);
+                    ctx.fillStyle = 'rgba(255,252,235,1)';
+                    ctx.beginPath();
+                    ctx.arc(d.x, d.y, d.r * 0.55, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.globalAlpha = 1;
+                /* 4. 光源核心亮点 */
+                var sparkSize = 420;
+                ctx.globalAlpha = 0.85;
+                ctx.drawImage(softCircle,
+                    fx.lightX - sparkSize * 0.5,
+                    fx.lightY - sparkSize * 0.5,
+                    sparkSize, sparkSize);
+                ctx.globalAlpha = 1;
+                ctx.globalCompositeOperation = 'source-over';
+            }
+            function tick(t) {
+                var dt = Math.min(0.05, (t - lastT) / 1000);
+                lastT = t;
+                var time = t * 0.001;
+                for (var i = 0; i < cloudLayers.length; i++) {
+                    renderCloudLayer(cloudLayers[i], dt, time);
+                }
+                renderTopFx(dt, time);
+                requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
+        })();
+    </script>
+    <!-- ============================================================
+         S4：菜单 + 退出按钮躲避
+         ============================================================ -->
+    <script>
+        (function () {
+            var closeBtns = document.querySelectorAll('[data-modal-close]');
+            for (var i = 0; i < closeBtns.length; i++) {
+                (function (btn) {
+                    btn.addEventListener('click', function () {
+                        var m = document.getElementById(btn.getAttribute('data-modal-close'));
+                        if (m) m.classList.remove('show');
+                    });
+                })(closeBtns[i]);
+            }
+            var masks = document.querySelectorAll('.modal-mask');
+            for (var j = 0; j < masks.length; j++) {
+                (function (m) {
+                    m.addEventListener('click', function (e) {
+                        if (e.target === m) m.classList.remove('show');
+                    });
+                })(masks[j]);
+            }
+            var startBtn = document.querySelector('[data-action="start"]');
+            var loadBtn = document.querySelector('[data-action="load"]');
+            var aboutBtn = document.querySelector('[data-action="about"]');
+            if (startBtn) startBtn.addEventListener('click', function () { window.GameEntry.startGame(); });
+            if (loadBtn) loadBtn.addEventListener('click', function () { window.GameEntry.loadGame(); });
+            if (aboutBtn) aboutBtn.addEventListener('click', function () {
+                var m = document.getElementById('about-modal');
+                if (m) m.classList.add('show');
+            });
+            /* 退出躲避 */
+            var exitBtn = document.getElementById('exit-btn');
+            var exitWrap = document.getElementById('exit-wrap');
+            if (!exitBtn || !exitWrap) return;
+            var dodged = false;
+            var curX = 0, curY = 0, tgtX = 0, tgtY = 0;
+            var isNear = false;
+            var PUSH_DIST = 100, NEAR_RADIUS = 150, FOLLOW_K = 0.20;
+            function lerp(a, b, k) { return a + (b - a) * k; }
+            function animate() {
+                curX = lerp(curX, tgtX, FOLLOW_K);
+                curY = lerp(curY, tgtY, FOLLOW_K);
+                if (Math.abs(curX - tgtX) < 0.08) curX = tgtX;
+                if (Math.abs(curY - tgtY) < 0.08) curY = tgtY;
+                exitWrap.style.transform = 'translate3d(' + curX + 'px,' + curY + 'px,0)';
+                requestAnimationFrame(animate);
+            }
+            requestAnimationFrame(animate);
+            function computePush(px, py) {
+                var rect = exitWrap.getBoundingClientRect();
+                var origCx = rect.left + rect.width * 0.5 - curX;
+                var origCy = rect.top + rect.height * 0.5 - curY;
+                var dx = origCx - px, dy = origCy - py;
+                var dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 1) {
+                    var a = Math.random() * Math.PI * 2;
+                    dx = Math.cos(a); dy = Math.sin(a);
+                } else { dx /= dist; dy /= dist; }
+                var strength = Math.max(0, 1 - dist / NEAR_RADIUS);
+                var push = PUSH_DIST * strength;
+                var tx = dx * push, ty = dy * push;
+                var sw = window.innerWidth, sh = window.innerHeight, margin = 16;
+                var minDx = margin + rect.width * 0.5 - origCx;
+                var maxDx = sw - margin - rect.width * 0.5 - origCx;
+                var minDy = margin + rect.height * 0.5 - origCy;
+                var maxDy = sh - margin - rect.height * 0.5 - origCy;
+                if (tx < minDx) tx = minDx;
+                if (tx > maxDx) tx = maxDx;
+                if (ty < minDy) ty = minDy;
+                if (ty > maxDy) ty = maxDy;
+                return { x: tx, y: ty };
+            }
+            function onMove(e) {
+                if (performance.now() < 2000) return;
+                var px = -9999, py = -9999;
+                if (e.touches && e.touches[0]) { px = e.touches[0].clientX; py = e.touches[0].clientY; }
+                else if (typeof e.clientX === 'number') { px = e.clientX; py = e.clientY; }
+                if (px < -100) return;
+                var rect = exitWrap.getBoundingClientRect();
+                var cx = rect.left + rect.width * 0.5;
+                var cy = rect.top + rect.height * 0.5;
+                var dx = cx - px, dy = cy - py;
+                var dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < NEAR_RADIUS) {
+                    isNear = true;
+                    var t = computePush(px, py);
+                    tgtX = t.x; tgtY = t.y;
+                } else if (isNear) {
+                    isNear = false;
+                    tgtX = 0; tgtY = 0;
+                }
+            }
+            window.addEventListener('mousemove', onMove, { passive: true });
+            window.addEventListener('touchmove', onMove, { passive: true });
+            window.addEventListener('touchstart', onMove, { passive: true });
+            exitBtn.addEventListener('click', function (e) {
+                if (!dodged) {
+                    dodged = true;
+                    var px = e.clientX || (window.innerWidth * 0.5);
+                    var py = e.clientY || (window.innerHeight * 0.5);
+                    var rect = exitWrap.getBoundingClientRect();
+                    var origCx = rect.left + rect.width * 0.5 - curX;
+                    var origCy = rect.top + rect.height * 0.5 - curY;
+                    var dx = origCx - px, dy = origCy - py;
+                    var d = Math.sqrt(dx * dx + dy * dy) || 1;
+                    dx /= d; dy /= d;
+                    var jump = 170;
+                    var tx = dx * jump, ty = dy * jump;
+                    var sw = window.innerWidth, sh = window.innerHeight, margin = 16;
+                    var minDx = margin + rect.width * 0.5 - origCx;
+                    var maxDx = sw - margin - rect.width * 0.5 - origCx;
+                    var minDy = margin + rect.height * 0.5 - origCy;
+                    var maxDy = sh - margin - rect.height * 0.5 - origCy;
+                    if (tx < minDx) tx = minDx;
+                    if (tx > maxDx) tx = maxDx;
+                    if (ty < minDy) ty = minDy;
+                    if (ty > maxDy) ty = maxDy;
+                    tgtX = tx; tgtY = ty;
+                    return;
+                }
+                var m = document.getElementById('exit-modal');
+                if (m) m.classList.add('show');
+            });
+            var confirmBtn = document.getElementById('exit-confirm');
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', function () {
+                    var m = document.getElementById('exit-modal');
+                    if (m) m.classList.remove('show');
+                    window.GameEntry.exitGame();
+                });
+            }
+        })();
+    </script>
+    <!-- ============================================================
+         S5：Esc 关闭弹窗 + 图片兜底
+         ============================================================ -->
+    <script>
+        window.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                var ms = document.querySelectorAll('.modal-mask.show');
+                for (var i = 0; i < ms.length; i++) ms[i].classList.remove('show');
+            }
+        });
+        (function () {
+            var imgs = document.querySelectorAll('img');
+            for (var i = 0; i < imgs.length; i++) {
+                (function (img) {
+                    img.addEventListener('error', function () {
+                        console.error('[IMG FAIL] ' + img.getAttribute('src'));
+                        img.style.display = 'none';
+                    });
+                })(imgs[i]);
+            }
+        })();
+    </script>
+    <script src="game-entry.js" onerror="void 0"></script>
+
+    <!-- 新增：开场动画逻辑（原有代码未做任何修改） -->
+    <script>
+        (function () {
+            // 初始隐藏主内容
+            const content = document.getElementById('content');
+            content.classList.add('init-hide');
+
+            const canvas = document.getElementById('splash-canvas');
+            const ctx = canvas.getContext('2d');
+            let sW, sH, sDPR;
+            let splashEnded = false;
+
+            /* 场景坐标 */
+            const SCENE_W = 1543, SCENE_H = 1648;
+            let baseScale = 1, sceneX = 0, sceneY = 0;
+            const CX = 771.5, CY = 824;
+            const CIRCLES = [
+                { cx: 668.5, cy: 1571.0, r: 76.5, color: '#02A5E3' },
+                { cx: 341.5, cy: 1397.0, r: 97.5, color: '#92D04F' },
+                { cx: 173.5, cy: 1001.5, r: 173.5, color: '#FFE100' },
+                { cx: 353.0, cy: 529.0, r: 239.0, color: '#FFC000' },
+                { cx: 1129.5, cy: 414.0, r: 413.5, color: '#D04617' },
+            ];
+            const TRI = [
+                { x: 1542, y: 828 },
+                { x: 1105, y: 828 },
+                { x: 1542, y: 391 },
+            ];
+
+            const ARC_CX = 803.02;
+            const ARC_CY = 954.20;
+            const ARC_R = 631.40;
+            const ARC_A1 = 1.786;
+            const ARC_A5 = 5.255;
+            const ARC_SPAN = ARC_A5 - ARC_A1;
+            const ARC_NORM = [0, 0.1706, 0.3692, 0.6088, 1];
+
+            /* 时间轴 */
+            const T_DOT_END = 0.50;
+            const T_ARRIVE_1 = 1.10;
+            const T_ARRIVE_5 = 3.40;
+            const T_TRI_START = 3.40;
+            const T_TRI_END = 3.90;
+            const T_COLOR_S = 3.90;
+            const T_COLOR_E = 4.40;
+            const T_SHRINK_S = 4.40;
+            const T_SHRINK_E = 4.90;
+            const T_SLIDE_S = 4.90;
+            const T_SLIDE_E = 5.50;
+            const T_TEXT_S = 4.90;
+            const T_TEXT_E = 5.60;
+            const TOTAL = 6.20;
+
+            /* 工具函数 */
+            const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
+            const lerp = (a, b, t) => a + (b - a) * t;
+            const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
+            const easeInOutCubic = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+            function easeInOutCubicInv(y) {
+                let lo = 0, hi = 1;
+                for (let i = 0; i < 40; i++) {
+                    const mid = (lo + hi) / 2;
+                    if (easeInOutCubic(mid) < y) lo = mid;
+                    else hi = mid;
+                }
+                return (lo + hi) / 2;
+            }
+
+            const FIX_TIMES = [
+                T_ARRIVE_1,
+                T_ARRIVE_1 + easeInOutCubicInv(ARC_NORM[1]) * (T_ARRIVE_5 - T_ARRIVE_1),
+                T_ARRIVE_1 + easeInOutCubicInv(ARC_NORM[2]) * (T_ARRIVE_5 - T_ARRIVE_1),
+                T_ARRIVE_1 + easeInOutCubicInv(ARC_NORM[3]) * (T_ARRIVE_5 - T_ARRIVE_1),
+                T_ARRIVE_5,
+            ];
+
+            function hexToRgb(hex) {
+                const h = hex.replace('#', '');
+                return {
+                    r: parseInt(h.substr(0, 2), 16),
+                    g: parseInt(h.substr(2, 2), 16),
+                    b: parseInt(h.substr(4, 2), 16),
+                };
+            }
+            function lerpColor(c1, c2, t) {
+                return {
+                    r: Math.round(lerp(c1.r, c2.r, t)),
+                    g: Math.round(lerp(c1.g, c2.g, t)),
+                    b: Math.round(lerp(c1.b, c2.b, t)),
+                };
+            }
+            function rgbStr(c) { return `rgb(${c.r},${c.g},${c.b})`; }
+
+            function resize() {
+                sDPR = Math.min(window.devicePixelRatio || 1, 2);
+                sW = window.innerWidth; sH = window.innerHeight;
+                canvas.width = sW * sDPR; canvas.height = sH * sDPR;
+                canvas.style.width = sW + 'px'; canvas.style.height = sH + 'px';
+                ctx.setTransform(sDPR, 0, 0, sDPR, 0, 0);
+                baseScale = Math.min(sW / SCENE_W, sH / SCENE_H) * 0.70;
+                sceneX = (sW - SCENE_W * baseScale) / 2;
+                sceneY = (sH - SCENE_H * baseScale) / 2;
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            const startTime = performance.now();
+
+            function computeDotState(t) {
+                if (t < T_DOT_END) {
+                    const p = clamp01(t / T_DOT_END);
+                    const r = lerp(0, 16, easeOutCubic(p));
+                    return { x: CX, y: CY, r, color: { r: 255, g: 255, b: 255 } };
+                }
+                if (t < T_ARRIVE_1) {
+                    const p = clamp01((t - T_DOT_END) / (T_ARRIVE_1 - T_DOT_END));
+                    const e = easeInOutCubic(p);
+                    const fromX = CX, fromY = CY, fromR = 16;
+                    const toX = CIRCLES[0].cx, toY = CIRCLES[0].cy, toR = CIRCLES[0].r;
+                    return {
+                        x: lerp(fromX, toX, e),
+                        y: lerp(fromY, toY, e),
+                        r: lerp(fromR, toR, e),
+                        color: { r: 255, g: 255, b: 255 },
+                    };
+                }
+                if (t < T_ARRIVE_5) {
+                    const p = clamp01((t - T_ARRIVE_1) / (T_ARRIVE_5 - T_ARRIVE_1));
+                    const e = easeInOutCubic(p);
+                    const angle = ARC_A1 + e * ARC_SPAN;
+                    const x = ARC_CX + Math.cos(angle) * ARC_R;
+                    const y = ARC_CY + Math.sin(angle) * ARC_R;
+                    let r = CIRCLES[0].r;
+                    for (let i = 0; i < ARC_NORM.length - 1; i++) {
+                        if (e >= ARC_NORM[i] && e <= ARC_NORM[i + 1]) {
+                            const lt = (e - ARC_NORM[i]) / (ARC_NORM[i + 1] - ARC_NORM[i]);
+                            r = lerp(CIRCLES[i].r, CIRCLES[i + 1].r, lt);
+                            break;
+                        }
+                    }
+                    return { x, y, r, color: { r: 255, g: 255, b: 255 } };
+                }
+                return null;
+            }
+
+            function computeFixedCircles(t) {
+                const out = [];
+                for (let i = 0; i < 5; i++) {
+                    if (t >= FIX_TIMES[i]) out.push(CIRCLES[i]);
+                }
+                return out;
+            }
+
+            function draw(now) {
+                const t = (now - startTime) / 1000;
+
+                const bgP = clamp01((t - T_COLOR_S) / (T_COLOR_E - T_COLOR_S));
+                const bgv = Math.round(255 * easeInOutCubic(bgP));
+                ctx.fillStyle = `rgb(${bgv},${bgv},${bgv})`;
+                ctx.fillRect(0, 0, sW, sH);
+
+                const colorT = clamp01((t - T_COLOR_S) / (T_COLOR_E - T_COLOR_S));
+
+                let gScale = 1, gShiftX = 0;
+                if (t > T_SHRINK_S) {
+                    const p = clamp01((t - T_SHRINK_S) / (T_SHRINK_E - T_SHRINK_S));
+                    gScale = lerp(1, 0.72, easeInOutCubic(p));
+                }
+                if (t > T_SLIDE_S) {
+                    const p = clamp01((t - T_SLIDE_S) / (T_SLIDE_E - T_SLIDE_S));
+                    gShiftX = lerp(0, -sW * 0.22, easeInOutCubic(p));
+                }
+                ctx.save();
+                ctx.translate(sW / 2 + gShiftX, sH / 2);
+                ctx.scale(gScale, gScale);
+                ctx.translate(-sW / 2, -sH / 2);
+
+                ctx.shadowColor = `rgba(0,0,0,${0.10 * colorT})`;
+                ctx.shadowBlur = 26;
+                ctx.shadowOffsetY = 8;
+
+                const fixed = computeFixedCircles(t);
+                for (const c of fixed) {
+                    drawCircleInScene(c.cx, c.cy, c.r, c.color, colorT);
+                }
+
+                const dot = computeDotState(t);
+                if (dot) {
+                    const sp = sceneToScreen(dot.x, dot.y);
+                    const glowR = dot.r * baseScale * 2.2;
+                    const glow = ctx.createRadialGradient(sp.x, sp.y, 0, sp.x, sp.y, glowR);
+                    glow.addColorStop(0, 'rgba(255,255,255,0.35)');
+                    glow.addColorStop(1, 'rgba(255,255,255,0)');
+                    ctx.fillStyle = glow;
+                    ctx.beginPath();
+                    ctx.arc(sp.x, sp.y, glowR, 0, Math.PI * 2);
+                    ctx.fill();
+                    drawDotInScene(dot, colorT);
+                }
+
+                const triP = clamp01((t - T_TRI_START) / (T_TRI_END - T_TRI_START));
+                if (triP > 0) drawTriangleInScene(triP, colorT);
+
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetY = 0;
+                ctx.restore();
+
+                drawText(t);
+
+                // 动画结束：触发移动到左下角logo
+                if (t >= TOTAL && !splashEnded) {
+                    splashEnded = true;
+                    document.getElementById('splash-container').classList.add('move-to-logo');
+                    // 恢复主内容并播放入场动画
+                    content.classList.remove('init-hide');
+                    // 移动过渡结束后隐藏开场层，露出原logo
+                    setTimeout(() => {
+                        document.getElementById('splash-container').style.display = 'none';
+                    }, 1200);
+                }
+
+                if (t < TOTAL) requestAnimationFrame(draw);
+            }
+
+            function sceneToScreen(x, y) {
+                return { x: sceneX + x * baseScale, y: sceneY + y * baseScale };
+            }
+
+            function drawCircleInScene(cx, cy, r, targetHex, colorT) {
+                const p = sceneToScreen(cx, cy);
+                const target = hexToRgb(targetHex);
+                const white = { r: 255, g: 255, b: 255 };
+                const c = lerpColor(white, target, colorT);
+                ctx.fillStyle = rgbStr(c);
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, r * baseScale, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            function drawDotInScene(dot, colorT) {
+                const p = sceneToScreen(dot.x, dot.y);
+                const white = { r: 255, g: 255, b: 255 };
+                const c = lerpColor(white, dot.color, colorT);
+                ctx.fillStyle = rgbStr(c);
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, dot.r * baseScale, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            function drawTriangleInScene(triP, colorT) {
+                const red = CIRCLES[4];
+                const origin = sceneToScreen(red.cx, red.cy);
+                const e = easeOutCubic(triP);
+                const target = hexToRgb('#D04617');
+                const white = { r: 255, g: 255, b: 255 };
+                const c = lerpColor(white, target, colorT);
+                ctx.fillStyle = rgbStr(c);
+                ctx.beginPath();
+                for (let i = 0; i < 3; i++) {
+                    const p = sceneToScreen(TRI[i].x, TRI[i].y);
+                    const nx = lerp(origin.x, p.x, e);
+                    const ny = lerp(origin.y, p.y, e);
+                    if (i === 0) ctx.moveTo(nx, ny);
+                    else ctx.lineTo(nx, ny);
+                }
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            function drawText(t) {
+                if (t < T_TEXT_S) return;
+                const p = clamp01((t - T_TEXT_S) / (T_TEXT_E - T_TEXT_S));
+                const e = easeOutCubic(p);
+                const fontSize = Math.min(sW, sH) * 0.075;
+                ctx.font = `900 ${fontSize}px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif`;
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                const text = '超级引擎';
+                const startX = sW + 60;
+                const endX = sW * 0.50;
+                const x = lerp(startX, endX, e);
+                const y = sH / 2;
+                ctx.save();
+                ctx.globalAlpha = e;
+                ctx.shadowColor = 'rgba(0,0,0,0.15)';
+                ctx.shadowBlur = 10;
+                ctx.shadowOffsetY = 4;
+                ctx.fillStyle = '#14141e';
+                ctx.fillText(text, x, y);
+                ctx.restore();
+            }
+
+            requestAnimationFrame(draw);
+        })();
+    </script>
+</body>
+</html>

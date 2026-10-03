@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<link rel="icon" href="data:,">
+    <meta charset="UTF-8">
+    <title>梦境校园 · 引擎</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="game-root">
+        <canvas id="game-canvas"></canvas>
+        <div id="room-ui-layer"></div>
+        <canvas id="dialogue-canvas"></canvas>
+        <div id="choice-layer"></div>
+        <div id="debug-hud"></div>
+    </div>
+
+    <div id="loader">
+        <div class="loader-box">
+            <div class="loader-title">梦境校园</div>
+            <div class="loader-sub">选择房间包进入</div>
+            <button id="btn-load-default">加载默认房间（data/room.zip）</button>
+            <label class="loader-file-btn">
+                <input type="file" id="file-zip" accept=".zip,.roomproj" style="display:none">
+                选择房间包（.zip / .roomproj）
+            </label>
+            <div class="loader-status" id="loader-status"></div>
+        </div>
+    </div>
+
+    <script src="../core/bridge.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/zip.js"></script>
+    <script src="js/element.js"></script>
+    <script src="js/character.js"></script>
+    <script src="js/camera.js"></script>
+    <script src="js/input.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/room-ui.js"></script>
+    <script src="js/context.js"></script>
+    <script src="js/engine.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/embed.js"></script>
+<script>/*__FILE_MODE_PATCH__*/
+(function(){
+  if (location.protocol !== "file:") return;
+  function patch(){
+    if (!window.__engine) return false;
+    var e = window.__engine;
+    if (e._fileModePatched) return true;
+    e._fileModePatched = true;
+
+    e._resize = function(){
+      var room = this.room;
+      var vp = (room && room.viewport) || { w: 1280, h: 720 };
+      var winW = window.innerWidth;
+      var winH = window.innerHeight;
+      var scale = Math.max(winW / vp.w, winH / vp.h);
+      var dw = Math.floor(vp.w * scale);
+      var dh = Math.floor(vp.h * scale);
+      var dx = Math.floor((winW - dw) / 2);
+      var dy = Math.floor((winH - dh) / 2);
+      this.canvas.width = vp.w;
+      this.canvas.height = vp.h;
+      var s = this.canvas.style;
+      s.position = "absolute";
+      s.width = dw + "px";
+      s.height = dh + "px";
+      s.left = dx + "px";
+      s.top = dy + "px";
+      s.imageRendering = "pixelated";
+      try { if (window.UI && UI.resize) UI.resize(vp.w, vp.h, dw, dh, dx, dy); } catch(x){}
+      try { if (window.RoomUI && RoomUI.resize) RoomUI.resize(vp.w, vp.h, dw, dh, dx, dy); } catch(x){}
+      this.camera.setViewport(vp.w, vp.h);
+      this.g.imageSmoothingEnabled = false;
+      this.g.setTransform(1,0,0,1,0,0);
+    };
+
+    var hideHud = function(){
+      var h = document.getElementById("debug-hud");
+      if (h && h.style.display !== "none") h.style.display = "none";
+    };
+    hideHud();
+    setInterval(hideHud, 500);
+
+    try { e._resize(); } catch(x){}
+    window.addEventListener("resize", function(){
+      try { e._resize(); } catch(x){}
+    });
+    return true;
+  }
+  var t = setInterval(function(){
+    if (patch()) clearInterval(t);
+  }, 50);
+  setTimeout(function(){ clearInterval(t); }, 10000);
+})();
+</script>
+</body>
+</html>
